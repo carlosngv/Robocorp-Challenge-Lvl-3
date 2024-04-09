@@ -1,3 +1,4 @@
+from robocorp import workitems
 from robocorp.tasks import task
 from RPA.HTTP import HTTP
 from RPA.JSON import JSON
@@ -26,8 +27,15 @@ def produce_traffic_data():
     )
 
     traffic_data = load_traffic_data()
-    cleaned_data = filter_and_sort_traffic_data(traffic_data)
-    table.write_table_to_csv(cleaned_data, './output/cleaned_data.csv')
+    filtered_data = filter_and_sort_traffic_data(traffic_data)
+    table.write_table_to_csv(filtered_data, './output/filtered_data.csv')
+
+    latest_data = get_latest_data_by_country(filtered_data)
+    latest_data = table.create_table(latest_data)
+    table.write_table_to_csv(latest_data, './output/latest_data.csv')
+    payloads = create_work_item_payloads(latest_data)
+    table.write_table_to_csv(table.create_table(payloads), './output/payloads.csv')
+    save_work_item_payload(payloads)
 
 @task
 def consume_traffic_data():
@@ -57,3 +65,42 @@ def filter_and_sort_traffic_data(data):
     # ? Ascending = False
     table.sort_table_by_column(data, year_key, False)
     return data
+
+def get_latest_data_by_country(data):
+    """
+        Grouping data by Country Code, and gettint the first row of each group.
+        Since the data is already sorted by year (descending), it will get the
+        latest row in terms of years.
+    """
+    country_key = 'SpatialDim'
+    # ? Returns a list of group tables
+    data = table.group_table_by_column(data, country_key)
+    latest_country_data = []
+
+    for group in data:
+        # ? Returns the first row of the group
+        row = table.pop_table_row(group)
+
+        latest_country_data.append(row)
+
+    return latest_country_data
+
+def create_work_item_payloads(data):
+    payloads = []
+
+    # ? Generates a list of dictionaries
+    for row in data:
+        data_row = dict(
+            country = row['SpatialDim'],
+            year = row['TimeDim'],
+            rate = row['NumericValue']
+        )
+
+        payloads.append(data_row)
+    return payloads
+
+def save_work_item_payload(payloads):
+    for payload in payloads:
+        # ? We store our payload as a dictionary with the given variable name (traffic_data).
+        variables = dict(traffic_data=payload)
+        workitems.outputs.create(variables)

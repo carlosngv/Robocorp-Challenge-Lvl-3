@@ -2,12 +2,12 @@
 # https://github.com/robocorp/rcc/blob/master/docs/recipes.md#what-is-in-robotyaml
 
 tasks:
-  # Run Task:
-  #   shell: python -m robocorp.tasks run tasks.py
+  Run Task:
+    shell: python -m robocorp.tasks run tasks.py
   Produce data:
-    shell: python -m robocorp.tasks run tasks.py --task produce_traffic_data
+    shell: python -m robocorp.tasks run producer.py --task produce_traffic_data
   Consume data:
-    shell: python -m robocorp.tasks run tasks.py --task consume_traffic_data
+    shell: python -m robocorp.tasks run consumer.py --task consume_traffic_data
 
 
 

@@ -17,5 +17,10 @@ If you want to run both, just type:
 rcc run
 ```
 
+If you want to run the bots using the env variables, just type:
+```
+rcc run -e devdata/env.json
+```
+
 Both tasks are defined on the **robot.yaml** configuration file.
 # Robocorp-Challenge-Lvl-3
